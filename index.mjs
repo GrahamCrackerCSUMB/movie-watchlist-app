@@ -42,6 +42,31 @@ app.post('/newUser', async (req, res) => {
     res.redirect('/index');
 });
 
+app.get('/index', (req, res) => {
+    res.render('index');
+});
+app.get('/editWatchlist', (req, res) => {
+    res.render('editWatchlist');
+});
+app.get('/landingPage', (req, res) => {
+    res.render('landingPage');
+});
+app.get('/movieDetails', (req, res) => {
+    res.render('movieDetails');
+});
+app.get('/newUser', (req, res) => {
+    res.render('newUser');
+});
+app.get('/search', (req, res) => {
+    res.render('search');
+});
+app.get('/searchResults', (req, res) => {
+    res.render('searchResults');
+});
+app.get('/watchList', (req, res) => {
+    res.render('watchList');
+});
+
 
 //dbTest
 app.get("/dbTest", async (req, res) => {
