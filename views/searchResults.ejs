@@ -17,6 +17,12 @@
         <p><strong>Genre:</strong> <%= movie.genre_name %></p>
         <p><strong>TMDb Rating:</strong> <%= movie.rating_score %>/10</p>
 
+        <button type="button" onclick="loadFakeReviews(<%= movie.id %>, this)">
+    Show Reviews
+</button>
+
+<div id="reviews-<%= movie.id %>" style="margin-top: 10px;"></div>
+
         <form action="/watchlist/add" method="POST">
             <input type="hidden" name="tmdb_id" value="<%= movie.id %>">
             <input type="hidden" name="title" value="<%= movie.title %>">
@@ -27,5 +33,56 @@
     </div>
     <hr>
 <% }); %>
+<script>
+const reviewCache = {};
+
+async function loadFakeReviews(movieId, button) {
+    const reviewBox = document.getElementById(`reviews-${movieId}`);
+
+    // 1. If already showing, hide them
+    if (reviewBox.innerHTML !== "") {
+        reviewBox.innerHTML = "";
+        button.textContent = "Show Reviews";
+        return;
+    }
+
+    // 2. If already cached, show cached reviews
+    if (reviewCache[movieId]) {
+        reviewBox.innerHTML = reviewCache[movieId];
+        button.textContent = "Hide Reviews";
+        return;
+    }
+
+    // 3. Otherwise fetch from server
+    try {
+        const response = await fetch(`/api/fake-reviews/${movieId}`);
+        const data = await response.json();
+        const reviews = data.reviews;
+        const totalLikes = data.totalLikes;
+
+        let html = `
+            <h4>Reviews</h4>
+            <p><strong>👍 Total Likes: ${totalLikes}</strong></p>
+        `;
+
+        reviews.forEach(review => {
+            html += `
+                <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+                    <strong>${review.reviewer}</strong><br>
+                    ${review.text}
+                </div>
+            `;
+        });
+
+        reviewBox.innerHTML = html;
+        reviewCache[movieId] = html;
+        button.textContent = "Hide  Reviews";
+
+    } catch (err) {
+        reviewBox.innerHTML = "<p>Error loading reviews</p>";
+    }
+}
+</script>
+
 </body>
 </html>

@@ -63,6 +63,38 @@ app.get('/search', isAuthenticated, (req, res) => {
     res.render('search');
 });
 
+app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
+    const movieId = parseInt(req.params.movieId);
+
+    try {
+        const response = await fetch('https://dummyjson.com/comments?limit=20');
+        const data = await response.json();
+
+        const numReviews = Math.floor(Math.random() * 5) + 1;
+
+        const shuffled = data.comments.sort(() => 0.5 - Math.random());
+
+        const selected = shuffled.slice(0, numReviews);
+
+        const fakeReviews = selected.map(comment => ({
+            reviewer: comment.user.fullName,
+            text: comment.body,
+            likes: comment.likes
+        }));
+
+        const totalLikes = fakeReviews.reduce((sum, r) => sum + r.likes, 0);
+
+        res.json({
+            reviews: fakeReviews,
+            totalLikes: totalLikes
+        });
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Could not load reviews' });
+    }
+});
+
 app.get('/search-results', isAuthenticated, async (req, res) => {
     const query = req.query.query;
     if (!query) return res.redirect('/search');
@@ -71,6 +103,12 @@ app.get('/search-results', isAuthenticated, async (req, res) => {
         const url = `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
         const response = await fetch(url);
         const data = await response.json();
+
+        console.log("TMDB response:", data);
+
+        if (!data.results || !Array.isArray(data.results)) {
+            return res.status(500).send("TMDB API returned an invalid response");
+        }
 
         const processedMovies = data.results.map(movie => {
             const firstGenreId = movie.genre_ids && movie.genre_ids.length > 0 ? movie.genre_ids[0] : null;
