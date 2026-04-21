@@ -1,0 +1,51 @@
+DROP TABLE IF EXISTS Watchlist;
+DROP TABLE IF EXISTS Movies;
+DROP TABLE IF EXISTS Users;
+
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reset_token VARCHAR(255) NULL,
+    reset_token_expires DATETIME NULL
+);
+
+CREATE TABLE Movies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    genre VARCHAR(100),
+    poster_url TEXT,
+    tmdb_id INT UNIQUE,
+    year VARCHAR(10),
+    overview TEXT,
+    rating_score DECIMAL(3,1) DEFAULT 0.0,
+    director VARCHAR(255),
+    runtime INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Watchlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    movie_id INT,
+    rating INT DEFAULT 0,
+    watched_status BOOLEAN DEFAULT FALSE,
+    personal_review TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES Movies(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_username ON Users(username);
+CREATE INDEX idx_email ON Users(email);
+CREATE INDEX idx_tmdb_id ON Movies(tmdb_id);
+CREATE INDEX idx_user_movie ON Watchlist(user_id, movie_id);
+
+-- Insert test user (password is 'password123')
+INSERT INTO Users (username, email, password) 
+VALUES ('TestUser', 'test@example.com', '$2b$10$9K7qEewZ5Gj4QK5YKRqKOuT3Q7X5hL5Y5x5z5v5w5x5y5z5A5B5C');
+
+SHOW TABLES;

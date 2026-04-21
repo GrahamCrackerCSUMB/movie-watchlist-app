@@ -1,0 +1,29 @@
+-- Tables I created for my hosted DB
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Movies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    genre VARCHAR(100),
+    poster_url VARCHAR(255),
+    tmdb_id INT UNIQUE
+);
+
+CREATE TABLE Watchlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    movie_id INT,
+    rating INT DEFAULT 0,
+    watched_status BOOLEAN DEFAULT FALSE,
+    personal_review TEXT,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (movie_id) REFERENCES Movies(id)
+);
+
+INSERT INTO Users (id, username, email, password) 
+VALUES (1, 'TestUser', 'test@example.com', 'password123');

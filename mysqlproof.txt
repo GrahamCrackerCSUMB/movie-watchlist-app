@@ -1,0 +1,88 @@
+mysql> SHOW COLUMNS FROM Users;
++---------------------+--------------+------+-----+-------------------+-------------------+
+| Field               | Type         | Null | Key | Default           | Extra             |
++---------------------+--------------+------+-----+-------------------+-------------------+
+| id                  | int          | NO   | PRI | NULL              | auto_increment    |
+| username            | varchar(100) | NO   | UNI | NULL              |                   |
+| email               | varchar(255) | NO   | UNI | NULL              |                   |
+| password            | varchar(255) | NO   |     | NULL              |                   |
+| created_at          | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
+| reset_token         | varchar(255) | YES  |     | NULL              |                   |
+| reset_token_expires | datetime     | YES  |     | NULL              |                   |
++---------------------+--------------+------+-----+-------------------+-------------------+
+7 rows in set (0.00 sec)
+
+mysql> SHOW COLUMNS FROM Movies;
++--------------+--------------+------+-----+-------------------+-------------------+
+| Field        | Type         | Null | Key | Default           | Extra             |
++--------------+--------------+------+-----+-------------------+-------------------+
+| id           | int          | NO   | PRI | NULL              | auto_increment    |
+| title        | varchar(255) | NO   | MUL | NULL              |                   |
+| genre        | varchar(100) | YES  | MUL | NULL              |                   |
+| poster_url   | text         | YES  |     | NULL              |                   |
+| tmdb_id      | int          | YES  | UNI | NULL              |                   |
+| year         | varchar(10)  | YES  | MUL | NULL              |                   |
+| overview     | text         | YES  |     | NULL              |                   |
+| rating_score | decimal(3,1) | YES  |     | 0.0               |                   |
+| director     | varchar(255) | YES  |     | NULL              |                   |
+| runtime      | int          | YES  |     | NULL              |                   |
+| created_at   | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++--------------+--------------+------+-----+-------------------+-------------------+
+11 rows in set (0.00 sec)
+
+mysql> SHOW COLUMNS FROM Watchlist;
++-----------------+------------+------+-----+-------------------+-----------------------------------------------+
+| Field           | Type       | Null | Key | Default           | Extra                                         |
++-----------------+------------+------+-----+-------------------+-----------------------------------------------+
+| id              | int        | NO   | PRI | NULL              | auto_increment                                |
+| user_id         | int        | YES  | MUL | NULL              |                                               |
+| movie_id        | int        | YES  | MUL | NULL              |                                               |
+| rating          | int        | YES  |     | NULL              |                                               |
+| watched_status  | tinyint(1) | YES  | MUL | 0                 |                                               |
+| personal_review | text       | YES  |     | NULL              |                                               |
+| added_at        | timestamp  | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| created_at      | timestamp  | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at      | timestamp  | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++-----------------+------------+------+-----+-------------------+-----------------------------------------------+
+9 rows in set (0.00 sec)
+
+mysql> SHOW INDEX FROM Users;
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table | Non_unique | Key_name     | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| users |          0 | PRIMARY      |            1 | id          | A         |           1 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| users |          0 | username     |            1 | username    | A         |           1 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| users |          0 | email        |            1 | email       | A         |           1 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| users |          1 | idx_username |            1 | username    | A         |           1 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+4 rows in set (0.02 sec)
+
+mysql> SHOW INDEX FROM Movies;
++--------+------------+------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table  | Non_unique | Key_name         | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++--------+------------+------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| movies |          0 | PRIMARY          |            1 | id          | A         |          94 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| movies |          0 | tmdb_id          |            1 | tmdb_id     | A         |           1 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| movies |          1 | idx_movies_title |            1 | title       | A         |          94 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| movies |          1 | idx_movies_genre |            1 | genre       | A         |           8 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| movies |          1 | idx_movies_year  |            1 | year        | A         |          31 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| movies |          1 | idx_tmdb_id      |            1 | tmdb_id     | A         |           1 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
++--------+------------+------------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+6 rows in set (0.02 sec)
+
+mysql> SHOW INDEX FROM Watchlist;
++-----------+------------+------------------------------+--------------+----------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table     | Non_unique | Key_name                     | Seq_in_index | Column_name    | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-----------+------------+------------------------------+--------------+----------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| watchlist |          0 | PRIMARY                      |            1 | id             | A         |           0 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| watchlist |          0 | unique_watchlist             |            1 | user_id        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          0 | unique_watchlist             |            2 | movie_id       | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          1 | idx_watchlist_user_id        |            1 | user_id        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          1 | idx_watchlist_movie_id       |            1 | movie_id       | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          1 | idx_watchlist_watched_status |            1 | watched_status | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          1 | idx_user_movie               |            1 | user_id        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| watchlist |          1 | idx_user_movie               |            2 | movie_id       | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
++-----------+------------+------------------------------+--------------+----------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+8 rows in set (0.05 sec)
+
+mysql>

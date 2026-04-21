@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>Search Results</title></head>
+<body>
+<h1>Results</h1>
+<a href="/search">New Search</a>
+<hr>
+
+<% movies.forEach(movie => { %>
+    <div style="margin-bottom: 20px;">
+        <h3><%= movie.title %> (<%= movie.release_date ? movie.release_date.split('-')[0] : 'N/A' %>)</h3>
+
+        <% if (movie.poster_path) { %>
+            <img src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>" width="100">
+        <% } %>
+
+        <p><strong>Genre:</strong> <%= movie.genre_name %></p>
+        <p><strong>TMDb Rating:</strong> <%= movie.rating_score %>/10</p>
+
+        <form action="/watchlist/add" method="POST">
+            <input type="hidden" name="tmdb_id" value="<%= movie.id %>">
+            <input type="hidden" name="title" value="<%= movie.title %>">
+            <input type="hidden" name="poster_path" value="<%= movie.poster_path %>">
+            <input type="hidden" name="genre_id" value="<%= movie.genre_ids[0] %>">
+            <button type="submit">Add to Watchlist</button>
+        </form>
+    </div>
+    <hr>
+<% }); %>
+</body>
+</html>

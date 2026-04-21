@@ -1,0 +1,2 @@
+# CST336-Final-Project
+All modules are now included. While the package should include every file you need to run the server locally, the .env contains placeholders for the DB and apikey. Did this for security, and so that we can use our own DBs while testing. Currently I have everything set for the TMDb api, so it should require that. Message me if you need help acquiring the key or want to use mine.
