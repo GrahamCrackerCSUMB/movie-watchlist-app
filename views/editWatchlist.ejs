@@ -3,6 +3,10 @@
 <head><title>Edit Movie</title></head>
 <body>
 <h1>Update Details</h1>
+<h2><%= movie.title %></h2>
+<% if (movie.poster_url) { %>
+    <img src="<%= movie.poster_url %>" width="150">
+<% } %>
 <form action="/watchlist/update" method="POST">
     <input type="hidden" name="id" value="<%= movie.id %>">
 
@@ -12,11 +16,17 @@
     <br>
 
     <label>Watched?</label>
-    <input type="checkbox" name="watched_status">
+    <input 
+        type="checkbox" 
+        name="watched_status"
+        <%= movie.watched_status ? "checked" : "" %>
+    >
 
     <br>
 
     <button type="submit">Save Changes</button>
 </form>
+
+<%- include('partials/footer.ejs') %>
 </body>
 </html>
