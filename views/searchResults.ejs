@@ -39,21 +39,18 @@ const reviewCache = {};
 async function loadFakeReviews(movieId, button) {
     const reviewBox = document.getElementById(`reviews-${movieId}`);
 
-    // 1. If already showing, hide them
     if (reviewBox.innerHTML !== "") {
         reviewBox.innerHTML = "";
         button.textContent = "Show Reviews";
         return;
     }
 
-    // 2. If already cached, show cached reviews
     if (reviewCache[movieId]) {
         reviewBox.innerHTML = reviewCache[movieId];
         button.textContent = "Hide Reviews";
         return;
     }
 
-    // 3. Otherwise fetch from server
     try {
         const response = await fetch(`/api/fake-reviews/${movieId}`);
         const data = await response.json();
