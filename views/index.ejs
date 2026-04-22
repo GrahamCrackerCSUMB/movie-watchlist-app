@@ -34,7 +34,7 @@
                     <ul class="text-watchlist">
                         <% watchlist.forEach(movie => { %>
                             <li>
-                                <a href="/movie/<%= movie.movie_id %>" class="movie-text-link">
+                                <a href="/movie/<%= movie.tmdb_id %>" class="movie-text-link">
                                     <%= movie.title %>
                                 </a>
                             </li>

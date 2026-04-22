@@ -58,9 +58,9 @@ app.get('/', async (req, res) => {
 
         if (userId) {
             const [rows] = await pool.execute(`
-                SELECT Watchlist.*, Movies.title, Movies.poster_url 
-                FROM Watchlist 
-                JOIN Movies ON Watchlist.movie_id = Movies.id 
+                SELECT Watchlist.*, Movies.title, Movies.poster_url, Movies.tmdb_id
+                FROM Watchlist
+                JOIN Movies ON Watchlist.movie_id = Movies.id
                 WHERE Watchlist.user_id = ?
                 LIMIT 5
             `, [userId]);
