@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WatchList Home</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+ <%- include('partials/nav.ejs') %>
+<h1>My Movie Watchlist</h1>
+<h2>Quick View</h2>
+<ul>
+    <% if (watchlist.length === 0) { %>
+        <li>Your watchlist is empty. <a href="/search">Add some movies!</a></li>
+    <% } else { %>
+            <% watchlist.forEach(item => { %>
+                <li>
+                    <a href="/movie/<%= item.movie_id %>"><strong><%= item.title %></strong></a>
+                    (<%= item.watched_status ? 'Watched' : 'To Watch' %>)
+                </li>
+            <% }); %>
+    <% } %>
+</ul>
+
+<%- include('partials/footer.ejs') %>
+</body>
+</html>

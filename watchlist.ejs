@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Watchlist</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/nav.ejs') %>
+
+<h1>My Movie Watchlist</h1>
+
+<hr>
+
+<% if (movies.length === 0) { %>
+    <p>Your watchlist is currently empty. <a href="/search">Search for movies</a> to add them!</p>
+<% } else { %>
+    <table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse;">
+        <thead>
+        <tr style="background-color: #FF0000;">
+            <th>Poster</th>
+            <th>Title</th>
+            <th>Genre</th>
+            <th>Rating</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% movies.forEach(movie => { %>
+            <tr>
+                <td align="center">
+                    <img src="<%= movie.poster_url %>" alt="Poster" width="80">
+                </td>
+                <td>
+                    <strong><%= movie.title %></strong>
+                </td>
+                <td>
+                    <%= movie.genre %>
+                </td>
+                <td align="center">
+                    <%= movie.rating > 0 ? movie.rating + "/10" : "Unrated" %>
+                </td>
+                <td align="center">
+                    <%= movie.watched_status ? "Watched" : "Planned" %>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a href="/edit/<%= movie.id %>">
+                            <button type="button">Edit</button>
+                        </a>
+
+                        <form action="/watchlist/delete" method="POST" onsubmit="return confirm('Are you sure you want to remove this movie?');">
+                            <input type="hidden" name="id" value="<%= movie.id %>">
+                            <button type="submit" style="color: red; cursor: pointer;">Remove</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        <% }); %>
+        </tbody>
+    </table>
+<% } %>
+
+<%- include('partials/footer.ejs') %>
+
+</body>
+</html>

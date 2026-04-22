@@ -64,11 +64,11 @@ app.get('/', isAuthenticated, async (req, res) => {
     }
 });
 
-app.get('/search', isAuthenticated, (req, res) => {
+app.get('/search', (req, res) => {
     res.render('search', { currentPage: 'search' });
 });
 
-app.get('/search-results', isAuthenticated, async (req, res) => {
+app.get('/search-results', async (req, res) => {
     const query = req.query.query;
     if (!query) return res.redirect('/search');
 
