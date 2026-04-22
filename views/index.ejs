@@ -12,12 +12,12 @@
     <% if (watchlist.length === 0) { %>
         <li>Your watchlist is empty. <a href="/search">Add some movies!</a></li>
     <% } else { %>
-        <% watchlist.forEach(item => { %>
-            <li>
-                <strong><%= item.title %></strong>
-                (<%= item.watched_status ? 'Watched' : 'To Watch' %>)
-            </li>
-        <% }); %>
+            <% watchlist.forEach(item => { %>
+                <li>
+                    <a href="/movie/<%= item.movie_id %>"><strong><%= item.title %></strong></a>
+                    (<%= item.watched_status ? 'Watched' : 'To Watch' %>)
+                </li>
+            <% }); %>
     <% } %>
 </ul>
 

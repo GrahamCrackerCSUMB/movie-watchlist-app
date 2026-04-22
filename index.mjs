@@ -68,38 +68,6 @@ app.get('/search', isAuthenticated, (req, res) => {
     res.render('search', { currentPage: 'search' });
 });
 
-app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
-    const movieId = parseInt(req.params.movieId);
-
-    try {
-        const response = await fetch('https://dummyjson.com/comments?limit=20');
-        const data = await response.json();
-
-        const numReviews = Math.floor(Math.random() * 5) + 1;
-
-        const shuffled = data.comments.sort(() => 0.5 - Math.random());
-
-        const selected = shuffled.slice(0, numReviews);
-
-        const fakeReviews = selected.map(comment => ({
-            reviewer: comment.user.fullName,
-            text: comment.body,
-            likes: comment.likes
-        }));
-
-        const totalLikes = fakeReviews.reduce((sum, r) => sum + r.likes, 0);
-
-        res.json({
-            reviews: fakeReviews,
-            totalLikes: totalLikes
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Could not load reviews' });
-    }
-});
-
 app.get('/search-results', isAuthenticated, async (req, res) => {
     const query = req.query.query;
     if (!query) return res.redirect('/search');
@@ -441,6 +409,67 @@ app.get('/logout', (req, res) => {
         res.redirect('/login');
     });
 });
+
+app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
+    const movieId = req.params.movieId;
+
+    try {
+        const tmdbUrl = `${TMDB_BASE_URL}/movie/${movieId}/reviews?api_key=${TMDB_API_KEY}`;
+        const tmdbRes = await fetch(tmdbUrl);
+        const tmdbData = await tmdbRes.json();
+
+        const realReviews = (tmdbData.results || []).slice(0, 3).map(review => ({
+            reviewer: review.author,
+            text: review.content.length > 300 
+                  ? review.content.substring(0, 300) + "..." 
+                  : review.content
+        }));
+
+        if (realReviews.length === 0) {
+            realReviews.push({ 
+                reviewer: "System", 
+                text: "No community reviews found for this title yet." 
+            });
+        }
+
+        const idNum = parseInt(movieId);
+        const totalLikes = (idNum % 150) + Math.floor((idNum / 7) % 50) + 10;
+
+        res.json({
+            reviews: realReviews,
+            totalLikes: totalLikes
+        });
+
+    } catch (err) {
+        console.error("Review Fetch Error:", err);
+        res.status(500).json({ error: 'Could not load combined review data' });
+    }
+});
+
+app.get('/movie/:id', isAuthenticated, async (req, res) => {
+    const movieId = req.params.id;
+    const userId = req.session.userId;
+
+    try {
+        const [rows] = await pool.execute(`
+            SELECT Movies.*, Watchlist.rating, Watchlist.watched_status, Watchlist.personal_review
+            FROM Movies
+            LEFT JOIN Watchlist ON Movies.id = Watchlist.movie_id AND Watchlist.user_id = ?
+            WHERE Movies.id = ?
+        `, [userId, movieId]);
+
+        if (rows.length === 0) {
+            return res.status(404).send("Movie not found");
+        }
+
+        res.render('movieDetails', { movie: rows[0], currentPage: 'watchlist' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Database Error");
+    }
+});
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

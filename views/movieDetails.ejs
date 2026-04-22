@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= movie.title %> - Details</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/nav.ejs') %>
+
+<div style="max-width: 800px; margin: 20px auto; display: flex; gap: 30px;">
+    <div>
+        <img src="<%= movie.poster_url %>" alt="<%= movie.title %>" style="width: 300px; border-radius: 10px;">
+    </div>
+
+    <div style="flex: 1;">
+        <h1><%= movie.title %></h1>
+        <p><strong>Genre:</strong> <%= movie.genre %></p>
+        <hr>
+
+        <h3>My Stats</h3>
+        <p><strong>Status:</strong> <%= movie.watched_status ? "Watched" : "Planned" %></p>
+        <p><strong>My Rating:</strong> <%= movie.rating > 0 ? movie.rating + "/10" : "Not rated yet" %></p>
+
+        <h4>My Review:</h4>
+        <p style="background-color: #2a2a2a; color: #e0e0e0; padding: 20px; border-left: 5px solid #444; border-radius: 0 8px 8px 0; font-style: italic; line-height: 1.6; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);">
+            <%= movie.personal_review || "No personal review written yet." %>
+        </p>
+
+        <a href="/edit/<%= movie.id %>">
+            <button type="button">Edit Review/Rating</button>
+        </a>
+    </div>
+</div>
+
+<%- include('partials/footer.ejs') %>
+</body>
+</html>
