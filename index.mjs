@@ -418,9 +418,6 @@ app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
         const tmdbRes = await fetch(tmdbUrl);
         const tmdbData = await tmdbRes.json();
 
-        const dummyRes = await fetch('https://dummyjson.com/comments?limit=10');
-        const dummyData = await dummyRes.json();
-
         const realReviews = (tmdbData.results || []).slice(0, 3).map(review => ({
             reviewer: review.author,
             text: review.content.length > 300 
@@ -435,7 +432,12 @@ app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
             });
         }
 
-        const totalLikes = dummyData.comments.reduce((sum, comment) => sum + (comment.likes || 0), 0);
+        // --- NEW LOGIC START ---
+        // Instead of fetching from dummyjson, create a unique number based on the ID.
+        // We use a bit of math to make it look like a real "Engagement" metric.
+        const idNum = parseInt(movieId);
+        const totalLikes = (idNum % 150) + Math.floor((idNum / 7) % 50) + 10;
+        // --- NEW LOGIC END ---
 
         res.json({
             reviews: realReviews,
@@ -470,6 +472,8 @@ app.get('/movie/:id', isAuthenticated, async (req, res) => {
         res.status(500).send("Database Error");
     }
 });
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
