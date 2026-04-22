@@ -432,12 +432,8 @@ app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
             });
         }
 
-        // --- NEW LOGIC START ---
-        // Instead of fetching from dummyjson, create a unique number based on the ID.
-        // We use a bit of math to make it look like a real "Engagement" metric.
         const idNum = parseInt(movieId);
         const totalLikes = (idNum % 150) + Math.floor((idNum / 7) % 50) + 10;
-        // --- NEW LOGIC END ---
 
         res.json({
             reviews: realReviews,
