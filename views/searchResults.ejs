@@ -37,11 +37,12 @@
     </div>
     <hr>
 <% }); %>
-<script>
-const reviewCache = {};
 
+<script>
 async function loadFakeReviews(movieId, button) {
     const reviewBox = document.getElementById(`reviews-${movieId}`);
+    const cacheKey = `reviews-${movieId}`;
+    const saved = localStorage.getItem(cacheKey);
 
     if (reviewBox.innerHTML !== "") {
         reviewBox.innerHTML = "";
@@ -49,8 +50,8 @@ async function loadFakeReviews(movieId, button) {
         return;
     }
 
-    if (reviewCache[movieId]) {
-        reviewBox.innerHTML = reviewCache[movieId];
+    if (saved) {
+        reviewBox.innerHTML = saved;
         button.textContent = "Hide Reviews";
         return;
     }
@@ -76,14 +77,17 @@ async function loadFakeReviews(movieId, button) {
         });
 
         reviewBox.innerHTML = html;
-        reviewCache[movieId] = html;
-        button.textContent = "Hide  Reviews";
+
+        localStorage.setItem(cacheKey, html);
+
+        button.textContent = "Hide Reviews";
 
     } catch (err) {
         reviewBox.innerHTML = "<p>Error loading reviews</p>";
     }
 }
 </script>
+
     <%- include('partials/footer.ejs') %>
 </body>
 </html>
