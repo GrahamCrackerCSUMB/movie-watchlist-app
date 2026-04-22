@@ -426,7 +426,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
-app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
+app.get('/api/fake-reviews/:movieId', async (req, res) => {
     const movieId = req.params.movieId;
 
     try {
