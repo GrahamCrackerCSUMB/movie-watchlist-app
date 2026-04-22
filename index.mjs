@@ -462,16 +462,16 @@ app.get('/api/fake-reviews/:movieId', isAuthenticated, async (req, res) => {
     }
 });
 
-app.get('/movie/:id', isAuthenticated, async (req, res) => {
+app.get('/movie/:id', async (req, res) => {
     const movieId = req.params.id;
-    const userId = req.session.userId;
+    const userId = req.session.userId || null;
 
     try {
         const [rows] = await pool.execute(`
             SELECT Movies.*, Watchlist.rating, Watchlist.watched_status, Watchlist.personal_review
             FROM Movies
             LEFT JOIN Watchlist ON Movies.id = Watchlist.movie_id AND Watchlist.user_id = ?
-            WHERE Movies.id = ?
+            WHERE Movies.tmdb_id = ?
         `, [userId, movieId]);
 
         if (rows.length === 0) {
@@ -486,7 +486,6 @@ app.get('/movie/:id', isAuthenticated, async (req, res) => {
 });
 
 
-
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
