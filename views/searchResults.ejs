@@ -30,11 +30,35 @@
                     </div>
 
                     <div class="card-content">
-                        <h3>
-                            <a href="/movie/<%= movie.id %>" class="movie-title-link">
+                    <h3>
+                        <% if (user) { %>
+                            <form action="/watchlist/add" method="POST" class="title-add-form">
+                                <input type="hidden" name="tmdb_id" value="<%= movie.id %>">
+                                <input type="hidden" name="title" value="<%= movie.title %>">
+                                <input type="hidden" name="poster_path" value="<%= movie.poster_path %>">
+                                <input type="hidden" name="genre_id" value="<%= movie.genre_ids[0] %>">
+                                <input type="hidden" name="redirectTo" value="/edit/<%= movie.id %>">
+
+                                <button type="submit" class="movie-title-link title-button">
+                                    <%= movie.title %> (<%= movie.release_date ? movie.release_date.split('-')[0] : 'N/A' %>)
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <a href="/guest-movie/<%= movie.id %>"
+                            class="movie-title-link"
+                            onclick="saveGuestMovieBeforeLink(event, {
+                                tmdb_id: '<%= movie.id %>',
+                                title: '<%= movie.title %>',
+                                poster_url: 'https://image.tmdb.org/t/p/w500<%= movie.poster_path %>',
+                                genre: '<%= movie.genre_name %>',
+                                rating: 0,
+                                watched_status: 0,
+                                personal_review: ''
+                            }, this.href)">
                                 <%= movie.title %> (<%= movie.release_date ? movie.release_date.split('-')[0] : 'N/A' %>)
                             </a>
-                        </h3>
+                        <% } %>
+                    </h3>
 
                         <div class="movie-stats">
                             <p><strong>Genre:</strong> <%= movie.genre_name %></p>
@@ -47,22 +71,32 @@
                             </button>
 
                             <% if (user) { %>
-                                <form action="/watchlist/add" method="POST" style="display:inline;">
+                                <form action="/watchlist/add" method="POST" class="add-watchlist-form">
                                     <input type="hidden" name="tmdb_id" value="<%= movie.id %>">
                                     <input type="hidden" name="title" value="<%= movie.title %>">
                                     <input type="hidden" name="poster_path" value="<%= movie.poster_path %>">
                                     <input type="hidden" name="genre_id" value="<%= movie.genre_ids[0] %>">
-                                    <button type="submit" class="btn-add">Add to Watchlist</button>
+                                    <% if (movie.inWatchlist) { %>
+                                        <button type="button" class="btn-add" disabled style="background-color:#444;">
+                                            Already in Watchlist
+                                        </button>
+                                    <% } else { %>
+                                        <button type="submit" class="btn-add">Add to Watchlist</button>
+                                    <% } %>
                                 </form>
                             <% } else { %>
-                                <button type="button" class="btn-add guest-btn"
+                                <button type="button" 
+                                    class="btn-add guest-btn"
+                                    data-tmdb-id="<%= movie.id %>"
                                         onclick="saveToGuestWatchlist({
-                                                tmdb_id: '<%= movie.id %>',
-                                                title: '<%= movie.title %>',
-                                                poster_url: 'https://image.tmdb.org/t/p/w500<%= movie.poster_path %>',
-                                                genre: '<%= movie.genre_name %>',
-                                                watched_status: 0
-                                                }, this)">
+                                            tmdb_id: '<%= movie.id %>',
+                                            title: '<%= movie.title %>',
+                                            poster_url: 'https://image.tmdb.org/t/p/w500<%= movie.poster_path %>',
+                                            genre: '<%= movie.genre_name %>',
+                                            rating: 0,
+                                            watched_status: 0,
+                                            personal_review: ''
+                                        }, this)">
                                     Add to Watchlist
                                 </button>
                             <% } %>
@@ -77,20 +111,53 @@
 </main>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+
+    document.querySelectorAll('.guest-btn').forEach(button => {
+        const tmdbId = button.dataset.tmdbId;
+
+        const alreadySaved = watchlist.some(movie => String(movie.tmdb_id) === String(tmdbId));
+
+        if (alreadySaved) {
+            button.textContent = "Already in Watchlist";
+            button.style.backgroundColor = "#444";
+            button.disabled = true;
+        }
+    });
+});
+
+    function saveGuestMovieBeforeLink(event, movie, url) {
+    event.preventDefault();
+
+    let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+
+    const alreadySaved = watchlist.some(m => String(m.tmdb_id) === String(movie.tmdb_id));
+
+    if (!alreadySaved) {
+        watchlist.push(movie);
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
+
+    window.location.href = url;
+}
+
     function saveToGuestWatchlist(movie, button) {
         let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
 
-        if (watchlist.some(m => m.tmdb_id == movie.tmdb_id)) {
-            button.textContent = "Already in List";
+        if (watchlist.some(m => String(m.tmdb_id) === String(movie.tmdb_id))) {
+            button.textContent = "Already in Watchlist";
             button.style.backgroundColor = "#444";
+            button.disabled = true;  
             return;
-        }
+}
 
         watchlist.push(movie);
         localStorage.setItem('watchlist', JSON.stringify(watchlist));
 
         button.style.backgroundColor = "#28a745";
         button.textContent = "Saved to Browser!";
+        button.disabled = true;
     }
 
     async function loadMovieReviews(movieId, button) {

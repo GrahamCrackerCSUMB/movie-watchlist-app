@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Guest Movie</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/nav.ejs') %>
+
+<main class="content-wrapper">
+    <div class="edit-container">
+        <h1>Update Guest Movie</h1>
+        <h2 id="movie-title"></h2>
+
+        <div class="poster-preview">
+            <img id="movie-poster" alt="Poster Preview">
+        </div>
+
+        <form id="guest-edit-form" class="styled-form">
+            <input type="hidden" id="tmdb_id" value="<%= tmdb_id %>">
+
+            <div class="form-group">
+                <label>My Rating (1-10)</label>
+                <input type="number" id="rating" min="1" max="10">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label for="watched_status">Mark as Watched</label>
+                <input type="checkbox" id="watched_status">
+            </div>
+
+            <div class="form-group">
+                <label>Your Review</label>
+                <textarea id="personal_review" rows="6" placeholder="Write your thoughts here..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <a href="/search" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    const tmdbId = document.getElementById('tmdb_id').value;
+    const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+    const movie = watchlist.find(m => String(m.tmdb_id) === String(tmdbId));
+
+    if (!movie) {
+        document.querySelector('.edit-container').innerHTML = `
+            <h1>Movie not found</h1>
+            <p>This movie is not in your guest watchlist.</p>
+            <a href="/search" class="btn-link">Search Movies</a>
+        `;
+    } else {
+        document.getElementById('movie-title').textContent = movie.title;
+        document.getElementById('movie-poster').src = movie.poster_url;
+        document.getElementById('rating').value = movie.rating || '';
+        document.getElementById('watched_status').checked = movie.watched_status == 1;
+        document.getElementById('personal_review').value = movie.personal_review || '';
+    }
+
+    document.getElementById('guest-edit-form')?.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const updatedWatchlist = watchlist.map(m => {
+            if (String(m.tmdb_id) === String(tmdbId)) {
+                return {
+                    ...m,
+                    rating: document.getElementById('rating').value,
+                    watched_status: document.getElementById('watched_status').checked ? 1 : 0,
+                    personal_review: document.getElementById('personal_review').value
+                };
+            }
+            return m;
+        });
+
+        localStorage.setItem('watchlist', JSON.stringify(updatedWatchlist));
+        window.location.href = '/search';
+    });
+</script>
+
+<%- include('partials/footer.ejs') %>
+</body>
+</html>

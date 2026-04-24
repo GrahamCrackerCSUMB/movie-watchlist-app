@@ -98,12 +98,26 @@ app.get('/search-results', async (req, res) => {
             return res.status(500).send("TMDB API returned an invalid response");
         }
 
+        let watchlistIds = [];
+
+        if (req.session.userId) {
+            const [savedMovies] = await pool.execute(`
+                SELECT Movies.tmdb_id
+                FROM Watchlist
+                JOIN Movies ON Watchlist.movie_id = Movies.id
+                WHERE Watchlist.user_id = ?
+            `, [req.session.userId]);
+
+            watchlistIds = savedMovies.map(movie => String(movie.tmdb_id));
+        }
+
         const processedMovies = data.results.map(movie => {
             const firstGenreId = movie.genre_ids && movie.genre_ids.length > 0 ? movie.genre_ids[0] : null;
             return {
                 ...movie,
                 genre_name: genreMap[firstGenreId] || 'Unknown',
-                rating_score: movie.vote_average || 0
+                rating_score: movie.vote_average || 0,
+                inWatchlist: watchlistIds.includes(String(movie.id))
             };
         });
 
@@ -114,8 +128,9 @@ app.get('/search-results', async (req, res) => {
     }
 });
 
+
 app.post('/watchlist/add', isAuthenticated, async (req, res) => {
-    const { tmdb_id, title, poster_path, genre_id, rating, watched_status } = req.body;
+    const { tmdb_id, title, poster_path, genre_id, rating, watched_status, redirectTo } = req.body;
     const userId = req.session.userId;
     
     const genreName = genreMap[Number(genre_id)] || 'Unknown';
@@ -127,7 +142,17 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
         let movieId;
         
         if (movies.length === 0) {
-            const posterUrl = poster_path ? `https://image.tmdb.org/t/p/w500${poster_path}` : null;
+           let posterUrl = null;
+
+        if (poster_path) {
+            if (poster_path.startsWith('http')) {
+                posterUrl = poster_path;                
+            } else if (poster_path.startsWith('/')) {
+                posterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
+            } else {
+                posterUrl = `https://image.tmdb.org/t/p/w500/${poster_path}`;
+            }
+        }
             const [result] = await pool.execute(
                 'INSERT INTO Movies (title, genre, poster_url, tmdb_id) VALUES (?, ?, ?, ?)',
                 [title, genreName, posterUrl, tmdb_id]
@@ -143,7 +168,7 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
         );
         
         if (existing.length > 0) {
-            return res.redirect('/watchlist?error=Movie already in your watchlist');
+            return res.redirect(redirectTo || '/watchlist?error=Movie already in your watchlist');
         }
         
         await pool.execute(
@@ -151,7 +176,7 @@ app.post('/watchlist/add', isAuthenticated, async (req, res) => {
             [userId, movieId, initialRating, isWatched]
         );
         
-        res.redirect('/watchlist?success=Movie added successfully');
+        res.redirect(redirectTo || '/watchlist?success=Movie added successfully');
         
     } catch (err) {
         console.error(err);
@@ -384,13 +409,50 @@ app.post('/api/sync-watchlist', isAuthenticated, async (req, res) => {
             let movieId;
             
             if (movies.length === 0) {
-                const [result] = await pool.execute(
-                    'INSERT INTO Movies (title, genre, poster_url, tmdb_id) VALUES (?, ?, ?, ?)',
-                    [guestMovie.title, guestMovie.genre, guestMovie.poster_url, guestMovie.tmdb_id]
-                );
-                movieId = result.insertId;
+
+            let posterUrl = null;
+            const guestPoster = guestMovie.poster_url || guestMovie.poster_path;
+
+            if (guestPoster) {
+                if (guestPoster.startsWith('http')) {
+                    posterUrl = guestPoster;
+                } else if (guestPoster.startsWith('/')) {
+                    posterUrl = `https://image.tmdb.org/t/p/w500${guestPoster}`;
+                } else {
+                    posterUrl = `https://image.tmdb.org/t/p/w500/${guestPoster}`;
+                }
+            }
+
+            const [result] = await pool.execute(
+                'INSERT INTO Movies (title, genre, poster_url, tmdb_id) VALUES (?, ?, ?, ?)',
+                [guestMovie.title, guestMovie.genre, posterUrl, guestMovie.tmdb_id]
+            );
+
+            movieId = result.insertId;
+
             } else {
                 movieId = movies[0].id;
+
+                let posterUrl = null;
+                const guestPoster = guestMovie.poster_url || guestMovie.poster_path;
+
+                if (guestPoster) {
+                    if (guestPoster.startsWith('http')) {
+                        posterUrl = guestPoster;
+                    } else if (guestPoster.startsWith('/')) {
+                        posterUrl = `https://image.tmdb.org/t/p/w500${guestPoster}`;
+                    } else {
+                        posterUrl = `https://image.tmdb.org/t/p/w500/${guestPoster}`;
+                    }
+
+                    await pool.execute(
+                        `UPDATE Movies
+                        SET poster_url = ?
+                        WHERE id = ? 
+                        AND (poster_url IS NULL OR poster_url = '' OR poster_url LIKE '/%')`,
+                        [posterUrl, movieId]
+                    );
+                }
             }
             
             const [existing] = await pool.execute(
@@ -410,8 +472,11 @@ app.post('/api/sync-watchlist', isAuthenticated, async (req, res) => {
         res.json({ success: true, syncedCount, message: `Synced ${syncedCount} movies to your account` });
         
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Sync failed' });
+        console.error("SYNC ERROR:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: err.message 
+        });
     }
 });
 
@@ -462,6 +527,13 @@ app.get('/api/fake-reviews/:movieId', async (req, res) => {
     }
 });
 
+app.get('/guest-movie/:tmdb_id', (req, res) => {
+    res.render('guestEditMovie', {
+        tmdb_id: req.params.tmdb_id,
+        currentPage: 'watchlist'
+    });
+});
+
 app.get('/movie/:id', async (req, res) => {
     const movieId = req.params.id;
     const userId = req.session.userId || null;
@@ -484,6 +556,7 @@ app.get('/movie/:id', async (req, res) => {
         res.status(500).send("Database Error");
     }
 });
+
 
 
 app.listen(PORT, () => {

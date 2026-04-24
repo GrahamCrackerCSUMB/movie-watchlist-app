@@ -34,7 +34,7 @@
                     <ul class="text-watchlist">
                         <% watchlist.forEach(movie => { %>
                             <li>
-                                <a href="/movie/<%= movie.tmdb_id %>" class="movie-text-link">
+                                <a href="/edit/<%= movie.id %>" class="movie-text-link">
                                     <%= movie.title %>
                                 </a>
                             </li>
@@ -54,7 +54,7 @@
                         localData.slice(0, 5).forEach(movie => {
                             html += `
                                 <li>
-                                    <a href="/movie/${movie.tmdb_id}" class="movie-text-link">
+                                    <a href="/guest-movie/${movie.tmdb_id}" class="movie-text-link">
                                         ${movie.title} (Guest)
                                     </a>
                                 </li>
